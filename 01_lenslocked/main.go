@@ -15,9 +15,22 @@ func contactHandler(w http.ResponseWriter, _ *http.Request) {
   <a href="mailto:mustafa.hayati1992@gmail.com">email</a>.</p>`)
 }
 
+func pathHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case "/":
+		homeHandler(w, r)
+	case "/contact":
+		contactHandler(w, r)
+	default:
+		http.Error(w,
+			http.StatusText(http.StatusNotFound),
+			http.StatusNotFound,
+		)
+	}
+}
+
 func main() {
-	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/contact", contactHandler)
+	http.HandleFunc("/", pathHandler)
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
 	http.ListenAndServe(":3000", nil)
 }
