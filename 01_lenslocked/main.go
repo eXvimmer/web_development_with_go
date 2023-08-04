@@ -6,7 +6,7 @@ import (
 )
 
 func homeHandler(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprint(w, "<h1>Welcome to my great web site!</h1>")
+	fmt.Fprint(w, "<h1>Welcome to my awesome web site!</h1>")
 }
 
 func contactHandler(w http.ResponseWriter, _ *http.Request) {
@@ -15,7 +15,9 @@ func contactHandler(w http.ResponseWriter, _ *http.Request) {
   <a href="mailto:mustafa.hayati1992@gmail.com">email</a>.</p>`)
 }
 
-func pathHandler(w http.ResponseWriter, r *http.Request) {
+type Router struct{}
+
+func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
 		homeHandler(w, r)
@@ -30,7 +32,7 @@ func pathHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", pathHandler)
+	var router Router
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(":3000", router)
 }
