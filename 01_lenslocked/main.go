@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func homeHandler(w http.ResponseWriter, _ *http.Request) {
@@ -28,25 +31,17 @@ func faqHandler(w http.ResponseWriter, _ *http.Request) {
   `)
 }
 
-type Router struct{}
-
-func (Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/":
-		homeHandler(w, r)
-	case "/contact":
-		contactHandler(w, r)
-	case "/faq":
-		faqHandler(w, r)
-	default:
-		http.Error(w,
-			http.StatusText(http.StatusNotFound),
-			http.StatusNotFound,
-		)
-	}
-}
-
 func main() {
+	r := chi.NewRouter()
+
+	r.Get("/", homeHandler)
+	r.Get("/contact", contactHandler)
+	r.Get("/faq", faqHandler)
+	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	})
+
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	http.ListenAndServe(":3000", Router{})
+	err := http.ListenAndServe(":3000", r)
+	log.Fatal(err)
 }
