@@ -15,9 +15,7 @@ func contactHandler(w http.ResponseWriter, _ *http.Request) {
   <a href="mailto:mustafa.hayati1992@gmail.com">email</a>.</p>`)
 }
 
-type Router struct{}
-
-func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func pathHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
 		homeHandler(w, r)
@@ -31,8 +29,9 @@ func (router Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type Router struct{}
+
 func main() {
-	var router Router
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	http.ListenAndServe(":3000", router)
+	http.ListenAndServe(":3000", http.HandlerFunc(pathHandler))
 }
