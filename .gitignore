@@ -22,3 +22,4 @@ go.work
 
 .env
 01_lenslocked/build
+01_lenslocked/.vscode

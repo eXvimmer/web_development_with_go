@@ -18,6 +18,10 @@ func contactHandler(w http.ResponseWriter, _ *http.Request) {
   <a href="mailto:mustafa.hayati1992@gmail.com">email</a>.</p>`)
 }
 
+func paramHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, chi.URLParam(r, "id"))
+}
+
 func faqHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, `
@@ -37,6 +41,7 @@ func main() {
 	r.Get("/", homeHandler)
 	r.Get("/contact", contactHandler)
 	r.Get("/faq", faqHandler)
+	r.Get("/{id}", paramHandler)
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	})
