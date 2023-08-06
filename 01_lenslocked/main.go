@@ -10,9 +10,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func homeHandler(w http.ResponseWriter, _ *http.Request) {
+func executeTemplate(w http.ResponseWriter, filepath string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	t, err := template.ParseFiles(filepath.Join("templates", "home.tmpl.html"))
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	t, err := template.ParseFiles(filepath)
 	if err != nil {
 		log.Println("error while parsing template file:", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -27,10 +29,12 @@ func homeHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
+func homeHandler(w http.ResponseWriter, _ *http.Request) {
+	executeTemplate(w, filepath.Join("templates", "home.tmpl.html"))
+}
+
 func contactHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, `<h1>Contact Page</h1><p>To get in touch, send me an
-  <a href="mailto:mustafa.hayati1992@gmail.com">email</a>.</p>`)
+	executeTemplate(w, filepath.Join("templates", "contact.tmpl.html"))
 }
 
 func paramHandler(w http.ResponseWriter, r *http.Request) {
