@@ -10,9 +10,9 @@ type UserMeta struct {
 }
 
 type User struct {
-	Name string
-	Age  int
-	Meta UserMeta
+	Name         string
+	SafeBio      string
+	DangerousBio template.HTML // NOTE: this should come from a trusted source
 }
 
 func main() {
@@ -22,9 +22,9 @@ func main() {
 	}
 
 	user := User{
-		Name: "Mustafa Hayati",
-		Age:  30,
-		Meta: UserMeta{Visited: 4},
+		Name:         "Mustafa Hayati",
+		SafeBio:      `<script>alert("hi")</script>`,
+		DangerousBio: `<script>alert("hi")</script>`,
 	}
 
 	err = t.Execute(os.Stdout, user)
