@@ -10,9 +10,31 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func executeTemplate(w http.ResponseWriter, filepath string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+type Question struct {
+	Text string
+	// NOTE: use HTML instead of string, to load things like <a>...</a>. Make
+	// sure the source is secure and trusted
+	Answer template.HTML
+}
 
+var questions = []Question{
+	{
+		Text:   "Is there a free version?",
+		Answer: "Yes, we offer a free trial for 30 days on any paid plans.",
+	},
+	{
+		Text: "What are your support hours?",
+		Answer: `We have support staff answering emails 24/7,
+    though response times may be a bit slower on weekends.`,
+	},
+	{
+		Text: "How do I contact support?",
+		Answer: `Email us: <a href="mailto:support@lenslocked.com">
+    support@lenslocked.com</a>.`,
+	},
+}
+
+func executeTemplate(w http.ResponseWriter, filepath string, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	t, err := template.ParseFiles(filepath)
 	if err != nil {
@@ -21,7 +43,7 @@ func executeTemplate(w http.ResponseWriter, filepath string) {
 		return
 	}
 
-	err = t.Execute(w, nil)
+	err = t.Execute(w, data)
 	if err != nil {
 		log.Println("error while executing template file:", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -30,11 +52,11 @@ func executeTemplate(w http.ResponseWriter, filepath string) {
 }
 
 func homeHandler(w http.ResponseWriter, _ *http.Request) {
-	executeTemplate(w, filepath.Join("templates", "home.tmpl.html"))
+	executeTemplate(w, filepath.Join("templates", "home.tmpl.html"), nil)
 }
 
 func contactHandler(w http.ResponseWriter, _ *http.Request) {
-	executeTemplate(w, filepath.Join("templates", "contact.tmpl.html"))
+	executeTemplate(w, filepath.Join("templates", "contact.tmpl.html"), nil)
 }
 
 func paramHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,16 +64,7 @@ func paramHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func faqHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, `
-    <h1>FAQ</h1>
-    <h2>Q: Is there a free version?</h2>
-    <p>A: Yes, we offer a free trial for 30 days on any paid plans.</p>
-    <h2>Q: What are your support hours?</h2>
-    <p>A: We have support staff answering emails 24/7, though response times may be a bit slower on weekends.</p>
-    <h2>Q: How do I contact support?</h2>
-    <p>A: Email us: <a href="mailto:support@lenslocked.com">support@lenslocked.com</a>.</p>
-  `)
+	executeTemplate(w, filepath.Join("templates", "faq.tmpl.html"), questions)
 }
 
 func main() {
