@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -35,20 +36,13 @@ var questions = []Question{
 }
 
 func executeTemplate(w http.ResponseWriter, filepath string, data any) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	t, err := template.ParseFiles(filepath)
+	t, err := views.Parse(filepath)
 	if err != nil {
 		log.Println("error while parsing template file:", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	err = t.Execute(w, data)
-	if err != nil {
-		log.Println("error while executing template file:", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	t.Execute(w, data)
 }
 
 func homeHandler(w http.ResponseWriter, _ *http.Request) {
