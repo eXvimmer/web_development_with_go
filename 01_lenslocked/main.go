@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/exvimmer/lenslocked/controllers"
 	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
 )
@@ -35,44 +36,32 @@ var questions = []Question{
 	},
 }
 
-func executeTemplate(w http.ResponseWriter, filepath string, data any) {
-	t, err := views.Parse(filepath)
-	if err != nil {
-		log.Println("error while parsing template file:", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	t.Execute(w, data)
-}
-
-func homeHandler(w http.ResponseWriter, _ *http.Request) {
-	executeTemplate(w, filepath.Join("templates", "home.tmpl.html"), nil)
-}
-
-func contactHandler(w http.ResponseWriter, _ *http.Request) {
-	executeTemplate(w, filepath.Join("templates", "contact.tmpl.html"), nil)
-}
-
-func paramHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, chi.URLParam(r, "id"))
-}
-
-func faqHandler(w http.ResponseWriter, _ *http.Request) {
-	executeTemplate(w, filepath.Join("templates", "faq.tmpl.html"), questions)
-}
-
 func main() {
 	r := chi.NewRouter()
 
-	r.Get("/", homeHandler)
-	r.Get("/contact", contactHandler)
-	r.Get("/faq", faqHandler)
-	r.Get("/{id}", paramHandler)
+	t, err := views.Parse(filepath.Join("templates", "home.tmpl.html"))
+	if err != nil {
+		panic(err)
+	}
+	r.Get("/", controllers.StaticHandler(t, nil))
+
+	t, err = views.Parse(filepath.Join("templates", "contact.tmpl.html"))
+	if err != nil {
+		panic(err)
+	}
+	r.Get("/contact", controllers.StaticHandler(t, nil))
+
+	t, err = views.Parse(filepath.Join("templates", "faq.tmpl.html"))
+	if err != nil {
+		panic(err)
+	}
+	r.Get("/faq", controllers.StaticHandler(t, questions))
+
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	})
 
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	err := http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":3000", r)
 	log.Fatal(err)
 }
