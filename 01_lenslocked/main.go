@@ -39,29 +39,26 @@ var questions = []Question{
 func main() {
 	r := chi.NewRouter()
 
-	t, err := views.Parse(filepath.Join("templates", "home.tmpl.html"))
-	if err != nil {
-		panic(err)
-	}
-	r.Get("/", controllers.StaticHandler(t, nil))
+	r.Get("/",
+		controllers.StaticHandler(
+			views.Must(views.Parse(filepath.Join("templates", "home.tmpl.html"))),
+			nil))
 
-	t, err = views.Parse(filepath.Join("templates", "contact.tmpl.html"))
-	if err != nil {
-		panic(err)
-	}
-	r.Get("/contact", controllers.StaticHandler(t, nil))
+	r.Get("/contact",
+		controllers.StaticHandler(
+			views.Must(views.Parse(filepath.Join("templates", "contact.tmpl.html"))),
+			nil))
 
-	t, err = views.Parse(filepath.Join("templates", "faq.tmpl.html"))
-	if err != nil {
-		panic(err)
-	}
-	r.Get("/faq", controllers.StaticHandler(t, questions))
+	r.Get("/faq",
+		controllers.StaticHandler(
+			views.Must(views.Parse(filepath.Join("templates", "faq.tmpl.html"))),
+			questions))
 
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	})
 
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	err = http.ListenAndServe(":3000", r)
+	err := http.ListenAndServe(":3000", r)
 	log.Fatal(err)
 }
