@@ -5,9 +5,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"path/filepath"
 
 	"github.com/exvimmer/lenslocked/controllers"
+	"github.com/exvimmer/lenslocked/templates"
 	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
 )
@@ -41,17 +41,17 @@ func main() {
 
 	r.Get("/",
 		controllers.StaticHandler(
-			views.Must(views.Parse(filepath.Join("templates", "home.tmpl.html"))),
+			views.Must(views.ParseFS(templates.FS, "home.tmpl.html")),
 			nil))
 
 	r.Get("/contact",
 		controllers.StaticHandler(
-			views.Must(views.Parse(filepath.Join("templates", "contact.tmpl.html"))),
+			views.Must(views.ParseFS(templates.FS, "contact.tmpl.html")),
 			nil))
 
 	r.Get("/faq",
 		controllers.StaticHandler(
-			views.Must(views.Parse(filepath.Join("templates", "faq.tmpl.html"))),
+			views.Must(views.ParseFS(templates.FS, "faq.tmpl.html")),
 			questions))
 
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
