@@ -29,8 +29,8 @@ func Parse(filepath string) (*Template, error) {
 	return &Template{htmlTmpl: tmpl}, nil
 }
 
-func ParseFS(fs fs.FS, pattern string) (*Template, error) {
-	t, err := template.ParseFS(fs, pattern)
+func ParseFS(fs fs.FS, patterns ...string) (*Template, error) {
+	t, err := template.ParseFS(fs, patterns...)
 	if err != nil {
 		return &Template{}, fmt.Errorf("parsing FS: %w", err)
 	}

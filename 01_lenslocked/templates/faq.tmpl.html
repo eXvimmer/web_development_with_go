@@ -1,6 +1,10 @@
 <h1>FAQ</h1>
 
-{{range .}}
-<h2>Q: {{.Text}}</h2>
-<p>A: {{.Answer}}</p>
-{{end}}
+{{- range .}}
+{{- template "questions" . -}}
+{{- end -}}
+
+{{- define "questions" }}
+<h2>Q: {{ .Question -}}</h2>
+<p>A: {{ .Answer -}}</p>
+{{- end }}
