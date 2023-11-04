@@ -34,7 +34,7 @@ func main() {
 
 	usersC := controllers.Users{
 		Templates: controllers.UsersTemplates{
-			New: *views.Must(views.ParseFS(templates.FS, "signup.tmpl.html", "tailwind.tmpl.html")),
+			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html", "tailwind.tmpl.html")),
 		},
 	}
 	r.Get("/signup", usersC.New)

@@ -3,17 +3,15 @@ package controllers
 import (
 	"html/template"
 	"net/http"
-
-	"github.com/exvimmer/lenslocked/views"
 )
 
-func StaticHandler(t *views.Template, data any) http.HandlerFunc {
+func StaticHandler(t Template, data any) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		t.Execute(w, data)
 	}
 }
 
-func FAQ(t *views.Template) http.HandlerFunc {
+func FAQ(t Template) http.HandlerFunc {
 	questions := []struct {
 		Question string
 		Answer   template.HTML // WARN: make sure the source is trusted
