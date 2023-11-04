@@ -16,16 +16,16 @@ func main() {
 
 	r.Get("/",
 		controllers.StaticHandler(
-			views.Must(views.ParseFS(templates.FS, "home.tmpl.html")),
+			views.Must(views.ParseFS(templates.FS, "home.tmpl.html", "tailwind.tmpl.html")),
 			nil))
 
 	r.Get("/contact",
 		controllers.StaticHandler(
-			views.Must(views.ParseFS(templates.FS, "contact.tmpl.html")),
+			views.Must(views.ParseFS(templates.FS, "contact.tmpl.html", "tailwind.tmpl.html")),
 			nil))
 
 	r.Get("/faq",
-		controllers.FAQ(views.Must(views.ParseFS(templates.FS, "faq.tmpl.html"))))
+		controllers.FAQ(views.Must(views.ParseFS(templates.FS, "faq.tmpl.html", "tailwind.tmpl.html"))))
 
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)

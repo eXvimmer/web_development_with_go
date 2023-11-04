@@ -1,10 +1,18 @@
+{{ template "header" . }}
+
 <h1>FAQ</h1>
 
-{{- range .}}
-{{- template "questions" . -}}
-{{- end -}}
+<ul>
+  {{- range .}}
+  {{- template "questions" . -}}
+  {{- end -}}
+</ul>
 
 {{- define "questions" }}
-<h2>Q: {{ .Question -}}</h2>
-<p>A: {{ .Answer -}}</p>
+<li>
+  Q: {{ .Question }}
+  A: {{ .Answer -}}
+</li>
 {{- end }}
+
+{{ template "footer" . }}
