@@ -14,6 +14,9 @@ import (
 func main() {
 	r := chi.NewRouter()
 
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	r.Get("/",
 		controllers.StaticHandler(
 			views.Must(views.ParseFS(templates.FS, "home.tmpl.html", "tailwind.tmpl.html")),
