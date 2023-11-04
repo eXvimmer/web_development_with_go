@@ -14,8 +14,10 @@ import (
 func main() {
 	r := chi.NewRouter()
 
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	fs := http.FileServer(http.Dir("./static"))
+	r.Route("/static", func(r chi.Router) {
+		r.Handle("/*", http.StripPrefix("/static", fs))
+	})
 
 	r.Get("/",
 		controllers.StaticHandler(

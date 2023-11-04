@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "tw": "npx tailwindcss -i ./styles.css -o ./static/output.css --watch"
+    "tw": "npx tailwindcss -i ./styles.css -o ./static/output.css --watch",
+    "start": "concurrently \"npm run tw\" \"modd\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "tailwindcss": "^3.3.5"
   }
 }

@@ -23,6 +23,10 @@ func FAQ(t *views.Template) http.HandlerFunc {
 			Answer:   "Yes, we offer a free trial for 30 days on any paid plans.",
 		},
 		{
+			Question: "How old are you?",
+			Answer:   "Old enough to know better",
+		},
+		{
 			Question: "What are your support hours?",
 			Answer: `We have support staff answering emails 24/7,
     though response times may be a bit slower on weekends.`,
