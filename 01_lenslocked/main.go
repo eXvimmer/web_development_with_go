@@ -38,6 +38,7 @@ func main() {
 		},
 	}
 	r.Get("/signup", usersC.New)
+	r.Post("/users", usersC.Create)
 
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
