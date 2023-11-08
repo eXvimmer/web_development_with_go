@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,9 +10,11 @@ import (
 	"github.com/exvimmer/lenslocked/templates"
 	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
+	openDB()
 	r := chi.NewRouter()
 
 	fs := http.FileServer(http.Dir("./static"))
@@ -47,4 +50,25 @@ func main() {
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
 	err := http.ListenAndServe(":3000", r)
 	log.Fatal(err)
+}
+
+func openDB() {
+	db, err := sql.Open("pgx",
+		`
+		host=localhost
+		port=5432
+		user=goblina
+		password=jinnythejimbo
+		dbname=lenslocked
+		sslmode=disable
+	`)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("connected")
 }
