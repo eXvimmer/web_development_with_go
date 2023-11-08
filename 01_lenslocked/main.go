@@ -13,6 +13,15 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+type PostgressConfig struct {
+	host, port, user, password, dbname, sslmode string
+}
+
+func (p *PostgressConfig) String() string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		p.host, p.port, p.user, p.password, p.dbname, p.sslmode)
+}
+
 func main() {
 	openDB()
 	r := chi.NewRouter()
@@ -24,20 +33,22 @@ func main() {
 
 	r.Get("/",
 		controllers.StaticHandler(
-			views.Must(views.ParseFS(templates.FS, "home.tmpl.html", "tailwind.tmpl.html")),
-			nil))
+			views.Must(views.ParseFS(templates.FS, "home.tmpl.html",
+				"tailwind.tmpl.html")), nil))
 
 	r.Get("/contact",
 		controllers.StaticHandler(
-			views.Must(views.ParseFS(templates.FS, "contact.tmpl.html", "tailwind.tmpl.html")),
-			nil))
+			views.Must(views.ParseFS(templates.FS, "contact.tmpl.html",
+				"tailwind.tmpl.html")), nil))
 
 	r.Get("/faq",
-		controllers.FAQ(views.Must(views.ParseFS(templates.FS, "faq.tmpl.html", "tailwind.tmpl.html"))))
+		controllers.FAQ(views.Must(views.ParseFS(templates.FS, "faq.tmpl.html",
+			"tailwind.tmpl.html"))))
 
 	usersC := controllers.Users{
 		Templates: controllers.UsersTemplates{
-			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html", "tailwind.tmpl.html")),
+			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html",
+				"tailwind.tmpl.html")),
 		},
 	}
 	r.Get("/signup", usersC.New)
@@ -53,15 +64,15 @@ func main() {
 }
 
 func openDB() {
-	db, err := sql.Open("pgx",
-		`
-		host=localhost
-		port=5432
-		user=goblina
-		password=jinnythejimbo
-		dbname=lenslocked
-		sslmode=disable
-	`)
+	pgConfig := PostgressConfig{
+		host:     "localhost",
+		port:     "5432",
+		user:     "goblina",
+		password: "jinnythejimbo",
+		dbname:   "lenslocked",
+		sslmode:  "disable",
+	}
+	db, err := sql.Open("pgx", pgConfig.String())
 	if err != nil {
 		panic(err)
 	}
