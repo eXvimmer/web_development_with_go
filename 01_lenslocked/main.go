@@ -82,4 +82,26 @@ func openDB() {
 		panic(err)
 	}
 	fmt.Println("connected")
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
+			id SERIAL PRIMARY KEY,
+			first_name TEXT,
+			last_name TEXT,
+			email TEXT UNIQUE NOT NULL,
+			age INT
+		);
+
+		CREATE TABLE IF NOT EXISTS orders (
+			id SERIAL PRIMARY KEY,
+			user_id INT NOT NULL REFERENCES users(id),
+			amount INT,
+			description TEXT
+		);
+`)
+	if err == nil {
+		fmt.Println("tables are ready")
+	} else {
+		panic(err)
+	}
 }
