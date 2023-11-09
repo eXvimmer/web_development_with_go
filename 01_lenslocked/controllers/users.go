@@ -3,17 +3,20 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/exvimmer/lenslocked/models"
 )
 
 type UsersTemplates struct {
 	New Template
 }
 
-type Users struct {
-	Templates UsersTemplates
+type User struct {
+	Templates   UsersTemplates
+	UserService *models.UserService
 }
 
-func (u *Users) New(w http.ResponseWriter, r *http.Request) {
+func (u *User) New(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Email string
 	}{
@@ -22,7 +25,7 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 	u.Templates.New.Execute(w, data)
 }
 
-func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
+func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	// TODO: create the user

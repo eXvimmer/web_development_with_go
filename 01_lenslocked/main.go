@@ -35,22 +35,23 @@ func main() {
 	}
 	defer db.Close()
 
-	us := models.UserService{
-		DB: db,
-	}
-
-	user, err := us.Create("jimbo@gmail.com", "jimbo123")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(*user)
-
 	r := chi.NewRouter()
 
 	fs := http.FileServer(http.Dir("./static"))
 	r.Route("/static", func(r chi.Router) {
 		r.Handle("/*", http.StripPrefix("/static", fs))
 	})
+
+	userService := models.UserService{
+		DB: db,
+	}
+	usersC := controllers.User{
+		Templates: controllers.UsersTemplates{
+			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html",
+				"tailwind.tmpl.html")),
+		},
+		UserService: &userService,
+	}
 
 	r.Get("/",
 		controllers.StaticHandler(
@@ -66,12 +67,6 @@ func main() {
 		controllers.FAQ(views.Must(views.ParseFS(templates.FS, "faq.tmpl.html",
 			"tailwind.tmpl.html"))))
 
-	usersC := controllers.Users{
-		Templates: controllers.UsersTemplates{
-			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html",
-				"tailwind.tmpl.html")),
-		},
-	}
 	r.Get("/signup", usersC.New)
 	r.Post("/users", usersC.Create)
 
