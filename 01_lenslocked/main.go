@@ -23,7 +23,7 @@ func (p *PostgressConfig) String() string {
 }
 
 type Order struct {
-	ID          int
+	Id          int
 	UserId      int
 	Amount      int
 	Description string
@@ -104,8 +104,8 @@ func openDB() {
 	var orders []Order
 	for rows.Next() {
 		var order Order
-		order.ID = userId
-		err := rows.Scan(&order.ID, &order.Amount, &order.Description)
+		order.Id = userId
+		err := rows.Scan(&order.Id, &order.Amount, &order.Description)
 		if err != nil {
 			panic(err)
 		}
