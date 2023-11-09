@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"github.com/exvimmer/lenslocked/templates"
 	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type PostgressConfig struct {
@@ -31,7 +29,22 @@ type Order struct {
 }
 
 func main() {
-	openDB()
+	db, err := models.Open(models.DefaultPostgresConfig())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	us := models.UserService{
+		DB: db,
+	}
+
+	user, err := us.Create("jimbo@gmail.com", "jimbo123")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(*user)
+
 	r := chi.NewRouter()
 
 	fs := http.FileServer(http.Dir("./static"))
@@ -67,36 +80,6 @@ func main() {
 	})
 
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	err := http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":3000", r)
 	log.Fatal(err)
-}
-
-func openDB() {
-	pgConfig := PostgressConfig{
-		host:     "localhost",
-		port:     "5432",
-		user:     "goblina",
-		password: "jinnythejimbo",
-		dbname:   "lenslocked",
-		sslmode:  "disable",
-	}
-	db, err := sql.Open("pgx", pgConfig.String())
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("connected")
-
-	us := models.UserService{
-		DB: db,
-	}
-	user, err := us.Create("emi@gmail.com", "emi123")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(*user)
 }
