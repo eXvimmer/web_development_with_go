@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/exvimmer/lenslocked/controllers"
+	"github.com/exvimmer/lenslocked/models"
 	"github.com/exvimmer/lenslocked/templates"
 	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
@@ -90,29 +91,12 @@ func openDB() {
 	}
 	fmt.Println("connected")
 
-	userId := 2
-	rows, err := db.Query(`
-		SELECT id, amount, description
-		FROM orders
-		WHERE user_id=$1;
-	`, userId)
+	us := models.UserService{
+		DB: db,
+	}
+	user, err := us.Create("emi@gmail.com", "emi123")
 	if err != nil {
 		panic(err)
 	}
-	defer rows.Close()
-
-	var orders []Order
-	for rows.Next() {
-		var order Order
-		order.Id = userId
-		err := rows.Scan(&order.Id, &order.Amount, &order.Description)
-		if err != nil {
-			panic(err)
-		}
-		orders = append(orders, order)
-	}
-	if err = rows.Err(); err != nil {
-		panic(err)
-	}
-	fmt.Println("Orders", orders)
+	fmt.Println(*user)
 }
