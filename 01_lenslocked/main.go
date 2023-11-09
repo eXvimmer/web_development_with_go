@@ -22,6 +22,13 @@ func (p *PostgressConfig) String() string {
 		p.host, p.port, p.user, p.password, p.dbname, p.sslmode)
 }
 
+type Order struct {
+	ID          int
+	UserId      int
+	Amount      int
+	Description string
+}
+
 func main() {
 	openDB()
 	r := chi.NewRouter()
@@ -83,25 +90,29 @@ func openDB() {
 	}
 	fmt.Println("connected")
 
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS users (
-			id SERIAL PRIMARY KEY,
-			first_name TEXT,
-			last_name TEXT,
-			email TEXT UNIQUE NOT NULL,
-			age INT
-		);
-
-		CREATE TABLE IF NOT EXISTS orders (
-			id SERIAL PRIMARY KEY,
-			user_id INT NOT NULL REFERENCES users(id),
-			amount INT,
-			description TEXT
-		);
-`)
-	if err == nil {
-		fmt.Println("tables are ready")
-	} else {
+	userId := 2
+	rows, err := db.Query(`
+		SELECT id, amount, description
+		FROM orders
+		WHERE user_id=$1;
+	`, userId)
+	if err != nil {
 		panic(err)
 	}
+	defer rows.Close()
+
+	var orders []Order
+	for rows.Next() {
+		var order Order
+		order.ID = userId
+		err := rows.Scan(&order.ID, &order.Amount, &order.Description)
+		if err != nil {
+			panic(err)
+		}
+		orders = append(orders, order)
+	}
+	if err = rows.Err(); err != nil {
+		panic(err)
+	}
+	fmt.Println("Orders", orders)
 }
