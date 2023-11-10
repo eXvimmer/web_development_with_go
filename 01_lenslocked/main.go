@@ -12,24 +12,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type PostgressConfig struct {
-	host, port, user, password, dbname, sslmode string
-}
-
-func (p *PostgressConfig) String() string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		p.host, p.port, p.user, p.password, p.dbname, p.sslmode)
-}
-
-type Order struct {
-	Id          int
-	UserId      int
-	Amount      int
-	Description string
-}
-
 func main() {
-	db, err := models.Open(models.DefaultPostgresConfig())
+	db, err := models.OpenDB(models.DefaultPostgresConfig())
 	if err != nil {
 		panic(err)
 	}

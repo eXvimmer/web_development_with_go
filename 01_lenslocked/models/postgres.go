@@ -27,10 +27,10 @@ func DefaultPostgresConfig() *PostgressConfig {
 	}
 }
 
-// Open will open a SQL connection with the provided Postgres configuration.
-// Callers of Open need to make sure to close the database connection using the
-// `db.close()` method.
-func Open(config *PostgressConfig) (*sql.DB, error) {
+// OpenDB will open a SQL connection with the provided Postgres configuration.
+// Callers of OpenDB need to make sure to close the database connection using
+// the `db.close()` method.
+func OpenDB(config *PostgressConfig) (*sql.DB, error) {
 	db, err := sql.Open("pgx", config.String())
 	if err != nil {
 		return nil, fmt.Errorf("open db: %w", err)

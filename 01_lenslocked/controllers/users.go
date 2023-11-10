@@ -28,6 +28,13 @@ func (u *User) New(w http.ResponseWriter, r *http.Request) {
 func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	// TODO: create the user
-	fmt.Fprintf(w, "email: %s\npassword: %s", email, password)
+	user, err := u.UserService.Create(email, password)
+	if err != nil {
+		fmt.Println(err.Error())
+		// TODO: send the right status code to the user
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	// TODO: return a session token
+	fmt.Fprintf(w, "user created: %+v", user)
 }
