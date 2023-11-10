@@ -10,6 +10,7 @@ import (
 	"github.com/exvimmer/lenslocked/templates"
 	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/csrf"
 )
 
 func main() {
@@ -63,7 +64,13 @@ func main() {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	})
 
+	csrfKey := "YoonjinMalena1992202313MustafaXl"
+	csrfMW := csrf.Protect(
+		[]byte(csrfKey),
+		csrf.Secure(false), // TODO: set to true before deploying
+	)
+
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	err = http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":3000", csrfMW(r))
 	log.Fatal(err)
 }
