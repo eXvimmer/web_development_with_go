@@ -38,3 +38,24 @@ func (us *UserService) Create(email, password string) (*User, error) {
 	}
 	return &newUser, nil
 }
+
+func (us *UserService) Authenticate(email, password string) (*User, error) {
+	email = strings.ToLower(email)
+	row := us.DB.QueryRow(`
+		SELECT id, password_hash
+		FROM users
+		WHERE email=$1;
+	`, email)
+	user := User{
+		Email: email,
+	}
+	err := row.Scan(&user.Id, &user.PasswordHash)
+	if err != nil {
+		return nil, fmt.Errorf("authenticate: %w", err)
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		return nil, fmt.Errorf("authenticate: %w", err)
+	}
+	return &user, nil
+}
