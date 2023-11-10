@@ -48,3 +48,20 @@ func (u *User) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 	u.Templates.SignIn.Execute(w, data)
 }
+
+func (u *User) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		email    string
+		password string
+	}{
+		email:    r.FormValue("email"),
+		password: r.FormValue("password"),
+	}
+	user, err := u.UserService.Authenticate(data.email, data.password)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "failed to authenticate", http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, "user authenticated: %+v", user)
+}
