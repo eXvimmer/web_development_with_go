@@ -33,6 +33,8 @@ func main() {
 		Templates: controllers.UsersTemplates{
 			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html",
 				"tailwind.tmpl.html")),
+			SignIn: views.Must(views.ParseFS(templates.FS, "signin.tmpl.html",
+				"tailwind.tmpl.html")),
 		},
 		UserService: &userService,
 	}
@@ -53,6 +55,7 @@ func main() {
 
 	r.Get("/signup", usersC.New)
 	r.Post("/users", usersC.Create)
+	r.Get("/signin", usersC.SignIn)
 
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)

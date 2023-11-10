@@ -8,7 +8,8 @@ import (
 )
 
 type UsersTemplates struct {
-	New Template
+	New    Template
+	SignIn Template
 }
 
 type User struct {
@@ -37,4 +38,13 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	// TODO: return a session token
 	fmt.Fprintf(w, "user created: %+v", user)
+}
+
+func (u *User) SignIn(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Email string
+	}{
+		Email: r.FormValue("email"),
+	}
+	u.Templates.SignIn.Execute(w, data)
 }
