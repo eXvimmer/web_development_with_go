@@ -63,5 +63,20 @@ func (u *User) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to authenticate", http.StatusInternalServerError)
 		return
 	}
+	cookie := http.Cookie{
+		Name:  "email",
+		Value: data.email,
+		Path:  "/",
+	}
+	http.SetCookie(w, &cookie)
 	fmt.Fprintf(w, "user authenticated: %+v", user)
+}
+
+func (u *User) CurrentUser(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("email")
+	if err != nil /* || cookie == nil */ {
+		fmt.Fprintf(w, "the email value cannot be found in cookie")
+		return
+	}
+	fmt.Fprintf(w, "email cookie: %s\n", cookie.Value)
 }
