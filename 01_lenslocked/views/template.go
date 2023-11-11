@@ -1,6 +1,7 @@
 package views
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -17,9 +18,8 @@ type Template struct {
 func ParseFS(fs fs.FS, patterns ...string) (*Template, error) {
 	t := template.New(patterns[0]).Funcs(
 		template.FuncMap{
-			"csrfField": func() template.HTML {
-				return `<!-- TODO: implement csrfField -->`
-				// NOTE: this should be defined in the Execute method 
+			"csrfField": func() (template.HTML, error) {
+				return "", fmt.Errorf("csrfField is not implemented")
 			},
 		},
 	)
@@ -43,16 +43,19 @@ func (t *Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
 		return
 	}
 	tpl.Funcs(template.FuncMap{
-		"csrfField": func() template.HTML {
-			return csrf.TemplateField(r)
+		"csrfField": func() (template.HTML, error) {
+			return csrf.TemplateField(r), nil
 		},
 	})
-	err = tpl.Execute(w, data)
+	buf := new(bytes.Buffer)
+	err = tpl.Execute(buf, data) // to catch runtime errors
 	if err != nil {
 		log.Println("error executing template:", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError),
 			http.StatusInternalServerError)
+		return
 	}
+	buf.WriteTo(w)
 }
 
 func Must(t *Template, err error) *Template {
