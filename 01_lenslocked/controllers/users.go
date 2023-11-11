@@ -23,7 +23,7 @@ func (u *User) New(w http.ResponseWriter, r *http.Request) {
 	}{
 		Email: r.FormValue("email"),
 	}
-	u.Templates.New.Execute(w, data)
+	u.Templates.New.Execute(w, r, data)
 }
 
 func (u *User) Create(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func (u *User) SignIn(w http.ResponseWriter, r *http.Request) {
 	}{
 		Email: r.FormValue("email"),
 	}
-	u.Templates.SignIn.Execute(w, data)
+	u.Templates.SignIn.Execute(w, r, data)
 }
 
 func (u *User) ProcessSignIn(w http.ResponseWriter, r *http.Request) {

@@ -6,8 +6,8 @@ import (
 )
 
 func StaticHandler(t Template, data any) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		t.Execute(w, data)
+	return func(w http.ResponseWriter, r *http.Request) {
+		t.Execute(w, r, data)
 	}
 }
 
@@ -36,7 +36,7 @@ func FAQ(t Template) http.HandlerFunc {
 		},
 	}
 
-	return func(w http.ResponseWriter, _ *http.Request) {
-		t.Execute(w, questions)
+	return func(w http.ResponseWriter, r *http.Request) {
+		t.Execute(w, r, questions)
 	}
 }
