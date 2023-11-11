@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INT UNIQUE NOT NULL REFERENCES users(id),
+  token_hash TEXT UNIQUE NOT NULL
+);
