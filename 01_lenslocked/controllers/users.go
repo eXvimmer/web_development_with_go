@@ -95,3 +95,19 @@ func (u *User) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "current user: %s\n", user.Email)
 	fmt.Fprintf(w, "session cookie: %s\n", cookie)
 }
+
+func (u *User) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
+	token, err := getCookie(r, CookieSession)
+	if err != nil {
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	err = u.SessionService.Delete(token)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	deleteCookie(w, CookieSession)
+	http.Redirect(w, r, "/signin", http.StatusFound)
+}
