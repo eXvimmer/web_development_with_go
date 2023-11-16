@@ -10,7 +10,14 @@ status:
 up:
 	cd migrations && goose postgres "host=localhost port=5432 user=goblina password=jinnythejimbo dbname=lenslocked sslmode=disable" up
 
-
 .PHONY: down
 down:
 	cd migrations && goose postgres "host=localhost port=5432 user=goblina password=jinnythejimbo dbname=lenslocked sslmode=disable" down
+
+.PHONY: updocker
+updocker:
+	sudo docker compose up -d
+
+.PHONY: downducker
+downducker:
+	sudo docker compose down
