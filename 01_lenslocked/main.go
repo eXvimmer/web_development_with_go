@@ -20,6 +20,11 @@ func main() {
 	}
 	defer db.Close()
 
+	err = models.Migrate(db, "migrations")
+	if err != nil {
+		panic(err)
+	}
+
 	r := chi.NewRouter()
 
 	fs := http.FileServer(http.Dir("./static"))
