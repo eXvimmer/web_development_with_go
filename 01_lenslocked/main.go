@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/exvimmer/lenslocked/controllers"
+	"github.com/exvimmer/lenslocked/migrations"
 	"github.com/exvimmer/lenslocked/models"
 	"github.com/exvimmer/lenslocked/templates"
 	"github.com/exvimmer/lenslocked/views"
@@ -20,7 +21,7 @@ func main() {
 	}
 	defer db.Close()
 
-	err = models.Migrate(db, "migrations")
+	err = models.MigrateFS(db, migrations.FS, ".")
 	if err != nil {
 		panic(err)
 	}
