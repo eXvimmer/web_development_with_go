@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 
+	myCtx "github.com/exvimmer/lenslocked/context"
+	"github.com/exvimmer/lenslocked/models"
 	"github.com/gorilla/csrf"
 )
 
@@ -20,6 +22,9 @@ func ParseFS(fs fs.FS, patterns ...string) (*Template, error) {
 		template.FuncMap{
 			"csrfField": func() (template.HTML, error) {
 				return "", fmt.Errorf("csrfField is not implemented")
+			},
+			"currentUser": func() (*models.User, error) {
+				return nil, fmt.Errorf("currentUser is not implemented")
 			},
 		},
 	)
@@ -42,9 +47,13 @@ func (t *Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
 		http.Error(w, "cannot render the page", http.StatusInternalServerError)
 		return
 	}
+	// overwrite original ones
 	tpl.Funcs(template.FuncMap{
-		"csrfField": func() (template.HTML, error) {
-			return csrf.TemplateField(r), nil
+		"csrfField": func() template.HTML {
+			return csrf.TemplateField(r)
+		},
+		"currentUser": func() *models.User {
+			return myCtx.User(r.Context())
 		},
 	})
 	buf := new(bytes.Buffer)
