@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	myCtx "github.com/exvimmer/lenslocked/context"
 	"github.com/exvimmer/lenslocked/models"
 )
 
@@ -80,20 +81,12 @@ func (u *User) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *User) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	cookie, err := getCookie(r, CookieSession)
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/signin", http.StatusFound)
-		return
-	}
-	user, err := u.SessionService.User(cookie)
-	if err != nil {
-		fmt.Println(err)
+	user := myCtx.User(r.Context())
+	if user == nil {
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
 	fmt.Fprintf(w, "current user: %s\n", user.Email)
-	fmt.Fprintf(w, "session cookie: %s\n", cookie)
 }
 
 func (u *User) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
@@ -110,4 +103,26 @@ func (u *User) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
 	}
 	deleteCookie(w, CookieSession)
 	http.Redirect(w, r, "/signin", http.StatusFound)
+}
+
+type UserMiddleware struct {
+	SessionService *models.SessionService
+}
+
+func (umw *UserMiddleware) SetUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := getCookie(r, CookieSession)
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		user, err := umw.SessionService.User(cookie)
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		newCtx := myCtx.WithUser(r.Context(), user)
+		r = r.WithContext(newCtx)
+		next.ServeHTTP(w, r)
+	})
 }

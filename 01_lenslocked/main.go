@@ -33,6 +33,8 @@ func main() {
 		r.Handle("/*", http.StripPrefix("/static", fs))
 	})
 
+	sessionService := &models.SessionService{DB: db}
+
 	usersC := controllers.User{
 		Templates: controllers.UsersTemplates{
 			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html",
@@ -41,7 +43,7 @@ func main() {
 				"tailwind.tmpl.html")),
 		},
 		UserService:    &models.UserService{DB: db},
-		SessionService: &models.SessionService{DB: db},
+		SessionService: sessionService,
 	}
 
 	r.Get("/",
@@ -69,6 +71,10 @@ func main() {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	})
 
+	umw := controllers.UserMiddleware{
+		SessionService: sessionService,
+	}
+
 	csrfKey := "YoonjinMalena1992202313MustafaXl"
 	csrfMW := csrf.Protect(
 		[]byte(csrfKey),
@@ -76,6 +82,6 @@ func main() {
 	)
 
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	err = http.ListenAndServe(":3000", csrfMW(r))
+	err = http.ListenAndServe(":3000", csrfMW(umw.SetUser(r)))
 	log.Fatal(err)
 }
