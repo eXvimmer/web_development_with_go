@@ -33,13 +33,6 @@ func main() {
 		r.Handle("/*", http.StripPrefix("/static", fs))
 	})
 
-	userService := models.UserService{
-		DB: db,
-	}
-	sessionService := models.SessionService{
-		DB: db,
-	}
-
 	usersC := controllers.User{
 		Templates: controllers.UsersTemplates{
 			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html",
@@ -47,8 +40,8 @@ func main() {
 			SignIn: views.Must(views.ParseFS(templates.FS, "signin.tmpl.html",
 				"tailwind.tmpl.html")),
 		},
-		UserService:    &userService,
-		SessionService: &sessionService,
+		UserService:    &models.UserService{DB: db},
+		SessionService: &models.SessionService{DB: db},
 	}
 
 	r.Get("/",
