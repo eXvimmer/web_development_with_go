@@ -26,50 +26,7 @@ func main() {
 		panic(err)
 	}
 
-	r := chi.NewRouter()
-
-	fs := http.FileServer(http.Dir("./static"))
-	r.Route("/static", func(r chi.Router) {
-		r.Handle("/*", http.StripPrefix("/static", fs))
-	})
-
 	sessionService := &models.SessionService{DB: db}
-
-	usersC := controllers.User{
-		Templates: controllers.UsersTemplates{
-			New: views.Must(views.ParseFS(templates.FS, "signup.tmpl.html",
-				"tailwind.tmpl.html")),
-			SignIn: views.Must(views.ParseFS(templates.FS, "signin.tmpl.html",
-				"tailwind.tmpl.html")),
-		},
-		UserService:    &models.UserService{DB: db},
-		SessionService: sessionService,
-	}
-
-	r.Get("/",
-		controllers.StaticHandler(
-			views.Must(views.ParseFS(templates.FS, "home.tmpl.html",
-				"tailwind.tmpl.html")), nil))
-
-	r.Get("/contact",
-		controllers.StaticHandler(
-			views.Must(views.ParseFS(templates.FS, "contact.tmpl.html",
-				"tailwind.tmpl.html")), nil))
-
-	r.Get("/faq",
-		controllers.FAQ(views.Must(views.ParseFS(templates.FS, "faq.tmpl.html",
-			"tailwind.tmpl.html"))))
-
-	r.Get("/signup", usersC.New)
-	r.Post("/users", usersC.Create)
-	r.Get("/signin", usersC.SignIn)
-	r.Post("/signin", usersC.ProcessSignIn)
-	r.Post("/signout", usersC.ProcessSignOut)
-	r.Get("/users/me", usersC.CurrentUser)
-
-	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-	})
 
 	umw := controllers.UserMiddleware{
 		SessionService: sessionService,
@@ -81,7 +38,66 @@ func main() {
 		csrf.Secure(false), // TODO: set to true before deploying
 	)
 
+	usersC := controllers.User{
+		Templates: controllers.UsersTemplates{
+			New: views.Must(
+				views.ParseFS(templates.FS, "signup.tmpl.html", "tailwind.tmpl.html"),
+			),
+			SignIn: views.Must(
+				views.ParseFS(templates.FS, "signin.tmpl.html", "tailwind.tmpl.html"),
+			),
+		},
+		UserService:    &models.UserService{DB: db},
+		SessionService: sessionService,
+	}
+
+	fs := http.FileServer(http.Dir("./static"))
+	r := chi.NewRouter()
+	r.Use(csrfMW, umw.SetUser)
+	r.Route(
+		"/static",
+		func(r chi.Router) { r.Handle("/*", http.StripPrefix("/static", fs)) },
+	)
+	r.Get(
+		"/",
+		controllers.StaticHandler(
+			views.Must(
+				views.ParseFS(templates.FS, "home.tmpl.html", "tailwind.tmpl.html"),
+			),
+			nil,
+		),
+	)
+	r.Get(
+		"/contact",
+		controllers.StaticHandler(
+			views.Must(
+				views.ParseFS(templates.FS, "contact.tmpl.html", "tailwind.tmpl.html"),
+			),
+			nil,
+		),
+	)
+	r.Get(
+		"/faq",
+		controllers.FAQ(
+			views.Must(
+				views.ParseFS(templates.FS, "faq.tmpl.html", "tailwind.tmpl.html"),
+			),
+		),
+	)
+	r.Get("/signup", usersC.New)
+	r.Post("/users", usersC.Create)
+	r.Get("/signin", usersC.SignIn)
+	r.Post("/signin", usersC.ProcessSignIn)
+	r.Post("/signout", usersC.ProcessSignOut)
+	r.Route("/users/me", func(r chi.Router) {
+		r.Use(umw.RequireUser)
+		r.Get("/", usersC.CurrentUser)
+	})
+	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	})
+
 	fmt.Println(" 🚀 server is running on port :3000 ✅")
-	err = http.ListenAndServe(":3000", csrfMW(umw.SetUser(r)))
+	err = http.ListenAndServe(":3000", r)
 	log.Fatal(err)
 }

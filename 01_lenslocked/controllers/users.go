@@ -82,10 +82,8 @@ func (u *User) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 
 func (u *User) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := myCtx.User(r.Context())
-	if user == nil {
-		http.Redirect(w, r, "/signin", http.StatusFound)
-		return
-	}
+	// NOTE: checking user == nil is already done in RequireUser middleware, so
+	// we don't need to check it again.
 	fmt.Fprintf(w, "current user: %s\n", user.Email)
 }
 
@@ -123,6 +121,18 @@ func (umw *UserMiddleware) SetUser(next http.Handler) http.Handler {
 		}
 		newCtx := myCtx.WithUser(r.Context(), user)
 		r = r.WithContext(newCtx)
+		next.ServeHTTP(w, r)
+	})
+}
+
+// this method assumes to be called after SetUser method
+func (umw *UserMiddleware) RequireUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := myCtx.User(r.Context())
+		if user == nil {
+			http.Redirect(w, r, "/signin", http.StatusFound)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
