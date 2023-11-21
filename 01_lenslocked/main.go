@@ -46,6 +46,13 @@ func main() {
 			SignIn: views.Must(
 				views.ParseFS(templates.FS, "signin.tmpl.html", "tailwind.tmpl.html"),
 			),
+			ForgotPassword: views.Must(
+				views.ParseFS(
+					templates.FS,
+					"forgot_pw.tmpl.html",
+					"tailwind.tmpl.html",
+				),
+			),
 		},
 		UserService:    &models.UserService{DB: db},
 		SessionService: sessionService,
@@ -89,6 +96,8 @@ func main() {
 	r.Get("/signin", usersC.SignIn)
 	r.Post("/signin", usersC.ProcessSignIn)
 	r.Post("/signout", usersC.ProcessSignOut)
+	r.Get("/forgot-pw", usersC.ForgotPassword)
+	r.Post("/forgot-pw", usersC.ProcessForgotPassword)
 	r.Route("/users/me", func(r chi.Router) {
 		r.Use(umw.RequireUser)
 		r.Get("/", usersC.CurrentUser)
