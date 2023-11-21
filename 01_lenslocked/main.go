@@ -38,7 +38,7 @@ func main() {
 		csrf.Secure(false), // TODO: set to true before deploying
 	)
 
-	usersC := controllers.User{
+	usersC := controllers.Users{
 		Templates: controllers.UsersTemplates{
 			New: views.Must(
 				views.ParseFS(templates.FS, "signup.tmpl.html", "tailwind.tmpl.html"),

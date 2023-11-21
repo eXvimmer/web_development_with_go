@@ -3,23 +3,28 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	myCtx "github.com/exvimmer/lenslocked/context"
 	"github.com/exvimmer/lenslocked/models"
 )
 
 type UsersTemplates struct {
-	New    Template
-	SignIn Template
+	New            Template
+	SignIn         Template
+	ForgotPassword Template
+	CheckYourEmail Template
 }
 
-type User struct {
-	Templates      UsersTemplates
-	UserService    *models.UserService
-	SessionService *models.SessionService
+type Users struct {
+	Templates            UsersTemplates
+	UserService          *models.UserService
+	SessionService       *models.SessionService
+	EmailService         *models.EmailService
+	PasswordResetService *models.PasswordResetService
 }
 
-func (u *User) New(w http.ResponseWriter, r *http.Request) {
+func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Email string
 	}{
@@ -28,7 +33,7 @@ func (u *User) New(w http.ResponseWriter, r *http.Request) {
 	u.Templates.New.Execute(w, r, data)
 }
 
-func (u *User) Create(w http.ResponseWriter, r *http.Request) {
+func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	user, err := u.UserService.Create(email, password)
@@ -47,7 +52,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
-func (u *User) SignIn(w http.ResponseWriter, r *http.Request) {
+func (u *Users) SignIn(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Email string
 	}{
@@ -56,7 +61,7 @@ func (u *User) SignIn(w http.ResponseWriter, r *http.Request) {
 	u.Templates.SignIn.Execute(w, r, data)
 }
 
-func (u *User) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
+func (u *Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		email    string
 		password string
@@ -80,14 +85,14 @@ func (u *User) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
-func (u *User) CurrentUser(w http.ResponseWriter, r *http.Request) {
+func (u *Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := myCtx.User(r.Context())
 	// NOTE: checking user == nil is already done in RequireUser middleware, so
 	// we don't need to check it again.
 	fmt.Fprintf(w, "current user: %s\n", user.Email)
 }
 
-func (u *User) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
+func (u *Users) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
 	token, err := getCookie(r, CookieSession)
 	if err != nil {
 		http.Redirect(w, r, "/signin", http.StatusFound)
@@ -101,6 +106,43 @@ func (u *User) ProcessSignOut(w http.ResponseWriter, r *http.Request) {
 	}
 	deleteCookie(w, CookieSession)
 	http.Redirect(w, r, "/signin", http.StatusFound)
+}
+
+func (u *Users) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Email string
+	}
+	data.Email = r.FormValue("email")
+	u.Templates.ForgotPassword.Execute(w, r, data)
+}
+
+func (u *Users) ProcessForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var data struct {
+		Email string
+	}
+	data.Email = r.FormValue("email")
+	pwReset, err := u.PasswordResetService.Create(data.Email)
+	if err != nil {
+		// TODO: handle other cases, like non-existing email address
+		fmt.Println(err)
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	vals := url.Values{
+		"token": {pwReset.Token},
+	}
+	resetUrl := "https://lenslocked.com/reset-pw?" + vals.Encode()
+	err = u.EmailService.ForgotPassword(data.Email, resetUrl)
+	if err != nil {
+		// TODO: handle other cases, like non-existing email address
+		fmt.Println(err)
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	// WARN: don't render the reset token in the template. users should be able
+	// to confirm that they have access to the email account to verify their
+	// identity.
+	u.Templates.CheckYourEmail.Execute(w, r, data)
 }
 
 type UserMiddleware struct {
