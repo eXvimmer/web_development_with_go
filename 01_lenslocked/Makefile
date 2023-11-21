@@ -22,10 +22,14 @@ reset:
 fix:
 	goose -dir ./migrations fix
 
-.PHONY: updocker
-updocker:
+.PHONY: compose_up
+compose_up:
 	sudo docker compose up -d
 
-.PHONY: downducker
-downducker:
+.PHONY: compose_down
+compose_down:
 	sudo docker compose down
+
+.PHONY: ps
+ps:
+	sudo docker compose ps
