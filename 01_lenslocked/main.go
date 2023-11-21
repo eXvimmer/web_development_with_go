@@ -102,6 +102,13 @@ func main() {
 					"tailwind.tmpl.html",
 				),
 			),
+			CheckYourEmail: views.Must(
+				views.ParseFS(
+					templates.FS,
+					"check_your_email.tmpl.html",
+					"tailwind.tmpl.html",
+				),
+			),
 		},
 		UserService:          &models.UserService{DB: db},
 		SessionService:       sessionService,
