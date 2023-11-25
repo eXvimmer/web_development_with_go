@@ -85,12 +85,52 @@ func (service *PasswordResetService) Create(email string) (*PasswordReset, error
 	return &pwReset, nil
 }
 
-// TODO: implement this
 func (service *PasswordResetService) Consume(token string) (*User, error) {
-	return nil, fmt.Errorf("TODO: this function is not implemented")
+	tokenHash := service.hash(token)
+	row := service.DB.QueryRow(`
+		SELECT password_resets.id, password_resets.expires_at,
+		users.id, users.email, users.password_hash
+		FROM password_resets
+		JOIN users
+		ON users.id = password_resets.user_id
+		WHERE password_resets.token_hash = $1;
+	`, tokenHash)
+	var (
+		user    User
+		pwReset PasswordReset
+	)
+	err := row.Scan(
+		&pwReset.Id,
+		&pwReset.ExpiresAt,
+		&user.Id,
+		&user.Email,
+		&user.PasswordHash,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("consume: %w", err)
+	}
+	if time.Now().After(pwReset.ExpiresAt) {
+		return nil, fmt.Errorf("token expired: %v", token)
+	}
+	err = service.delete(pwReset.Id)
+	if err != nil {
+		return nil, fmt.Errorf("consume: %w", err)
+	}
+	return &user, nil
 }
 
 func (service *PasswordResetService) hash(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return base64.URLEncoding.EncodeToString(sum[:])
+}
+
+func (service *PasswordResetService) delete(id int) error {
+	_, err := service.DB.Exec(`
+		DELETE FROM password_resets
+		WHERE id = $1;
+	`, id)
+	if err != nil {
+		return fmt.Errorf("delete: %w", err)
+	}
+	return nil
 }
