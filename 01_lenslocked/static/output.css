@@ -538,26 +538,6 @@ video {
   margin-bottom: 0.5rem;
 }
 
-.mb-1 {
-  margin-bottom: 0.25rem;
-}
-
-.mb-0 {
-  margin-bottom: 0px;
-}
-
-.mb-\[5px\] {
-  margin-bottom: 5px;
-}
-
-.mb-\[3px\] {
-  margin-bottom: 3px;
-}
-
-.mb-\[2px\] {
-  margin-bottom: 2px;
-}
-
 .block {
   display: block;
 }
