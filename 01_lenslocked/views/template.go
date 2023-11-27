@@ -27,11 +27,7 @@ func ParseFS(fs fs.FS, patterns ...string) (*Template, error) {
 				return nil, fmt.Errorf("currentUser is not implemented")
 			},
 			"errors": func() []string {
-				return []string{
-					"Something went wrong",
-					"The email address you provided is already taken",
-					"Invalid credentials",
-				}
+				return nil
 			},
 		},
 	)
@@ -44,7 +40,7 @@ func ParseFS(fs fs.FS, patterns ...string) (*Template, error) {
 	}, nil
 }
 
-func (t *Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
+func (t *Template) Execute(w http.ResponseWriter, r *http.Request, data any, errs ...error) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// NOTE: copy the template for each individual request to avoid race
 	// condition. we could've used locks, but this is simpler.
@@ -61,6 +57,13 @@ func (t *Template) Execute(w http.ResponseWriter, r *http.Request, data any) {
 		},
 		"currentUser": func() *models.User {
 			return myCtx.User(r.Context())
+		},
+		"errors": func() []string {
+			res := make([]string, len(errs))
+			for i, v := range errs {
+				res[i] = v.Error()
+			}
+			return res
 		},
 	})
 	buf := new(bytes.Buffer)
