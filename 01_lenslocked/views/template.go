@@ -2,6 +2,7 @@ package views
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -12,6 +13,10 @@ import (
 	"github.com/exvimmer/lenslocked/models"
 	"github.com/gorilla/csrf"
 )
+
+type public interface {
+	Public() string
+}
 
 type Template struct {
 	htmlTmpl *template.Template
@@ -51,6 +56,7 @@ func (t *Template) Execute(w http.ResponseWriter, r *http.Request, data any, err
 		return
 	}
 	// overwrite original ones
+	errorMessages := errMessages(errs...) // NOTE: created here to run it once, no matter what
 	tpl.Funcs(template.FuncMap{
 		"csrfField": func() template.HTML {
 			return csrf.TemplateField(r)
@@ -59,11 +65,7 @@ func (t *Template) Execute(w http.ResponseWriter, r *http.Request, data any, err
 			return myCtx.User(r.Context())
 		},
 		"errors": func() []string {
-			res := make([]string, len(errs))
-			for i, v := range errs {
-				res[i] = v.Error()
-			}
-			return res
+			return errorMessages
 		},
 	})
 	buf := new(bytes.Buffer)
@@ -82,4 +84,18 @@ func Must(t *Template, err error) *Template {
 		panic(err)
 	}
 	return t
+}
+
+func errMessages(errs ...error) []string {
+	res := make([]string, len(errs))
+	for i, err := range errs {
+		var pubErr public
+		if errors.As(err, &pubErr) {
+			res[i] = pubErr.Public()
+		} else {
+			fmt.Println(err)
+			res[i] = "something went wrong"
+		}
+	}
+	return res
 }
