@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	myCtx "github.com/exvimmer/lenslocked/context"
+	"github.com/exvimmer/lenslocked/errors"
 	"github.com/exvimmer/lenslocked/models"
 )
 
@@ -43,6 +44,9 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	data.Password = r.FormValue("password")
 	user, err := u.UserService.Create(data.Email, data.Password)
 	if err != nil {
+		if errors.Is(err, models.ErrEmailTaken) {
+			err = errors.Public(err, "That email address is already associated with an account")
+		}
 		u.Templates.New.Execute(w, r, data, err)
 		return
 	}
