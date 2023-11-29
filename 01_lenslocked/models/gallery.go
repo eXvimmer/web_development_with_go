@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -29,6 +30,22 @@ func (gs *GalleryService) Create(title string, userId int) (*Gallery, error) {
 	err := row.Scan(&gallery.Id)
 	if err != nil {
 		return nil, fmt.Errorf("create gallery: %w", err)
+	}
+	return &gallery, nil
+}
+
+func (gs *GalleryService) ById(id int) (*Gallery, error) {
+	gallery := Gallery{Id: id}
+	row := gs.DB.QueryRow(`
+		SELECT title, user_id FROM galleries
+		WHERE id = $1;
+	`, id)
+	err := row.Scan(&gallery.Title, &gallery.UserId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("query gallery by id: %w", err)
 	}
 	return &gallery, nil
 }
