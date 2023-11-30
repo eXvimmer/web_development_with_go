@@ -77,6 +77,7 @@ func main() {
 	}
 
 	sessionService := &models.SessionService{DB: db}
+	galleryService := &models.GalleryService{DB: db}
 
 	umw := controllers.UserMiddleware{
 		SessionService: sessionService,
@@ -122,6 +123,14 @@ func main() {
 		PasswordResetService: &models.PasswordResetService{DB: db},
 		EmailService:         models.NewEmailService(cfg.Smtp),
 	}
+	galleryC := controllers.Galleries{
+		GalleryService: galleryService,
+	}
+	galleryC.Templates.New = views.Must(views.ParseFS(
+		templates.FS,
+		"galleries/new.tmpl.html",
+		"tailwind.tmpl.html",
+	))
 
 	fs := http.FileServer(http.Dir("./static"))
 	r := chi.NewRouter()
@@ -130,6 +139,7 @@ func main() {
 		"/static",
 		func(r chi.Router) { r.Handle("/*", http.StripPrefix("/static", fs)) },
 	)
+	r.Get("/galleries/new", galleryC.New)
 	r.Get(
 		"/",
 		controllers.StaticHandler(

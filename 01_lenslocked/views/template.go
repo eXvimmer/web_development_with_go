@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"path"
 
 	myCtx "github.com/exvimmer/lenslocked/context"
 	"github.com/exvimmer/lenslocked/models"
@@ -23,7 +24,7 @@ type Template struct {
 }
 
 func ParseFS(fs fs.FS, patterns ...string) (*Template, error) {
-	t := template.New(patterns[0]).Funcs(
+	t := template.New(path.Base(patterns[0])).Funcs(
 		template.FuncMap{
 			"csrfField": func() (template.HTML, error) {
 				return "", fmt.Errorf("csrfField is not implemented")
