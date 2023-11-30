@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -59,6 +60,9 @@ func loadEnvConfig() (config, error) {
 	cfg.Smtp.Port = port
 	return cfg, nil
 }
+
+//go:embed static/*
+var staticFiles embed.FS
 
 func main() {
 	cfg, err := loadEnvConfig()
@@ -132,13 +136,10 @@ func main() {
 		"tailwind.tmpl.html",
 	))
 
-	fs := http.FileServer(http.Dir("./static"))
 	r := chi.NewRouter()
 	r.Use(csrfMW, umw.SetUser)
-	r.Route(
-		"/static",
-		func(r chi.Router) { r.Handle("/*", http.StripPrefix("/static", fs)) },
-	)
+	staticFileServer := http.FileServer(http.FS(staticFiles))
+	r.Handle("/static/*", http.StripPrefix("/static", staticFileServer))
 	r.Get("/galleries/new", galleryC.New)
 	r.Get(
 		"/",
