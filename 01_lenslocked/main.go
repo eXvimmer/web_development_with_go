@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"github.com/exvimmer/lenslocked/controllers"
 	"github.com/exvimmer/lenslocked/migrations"
 	"github.com/exvimmer/lenslocked/models"
+	"github.com/exvimmer/lenslocked/static"
 	"github.com/exvimmer/lenslocked/templates"
 	"github.com/exvimmer/lenslocked/views"
 	"github.com/go-chi/chi/v5"
@@ -61,9 +61,6 @@ func loadEnvConfig() (config, error) {
 	return cfg, nil
 }
 
-//go:embed static/*
-var staticFiles embed.FS
-
 func main() {
 	cfg, err := loadEnvConfig()
 	if err != nil {
@@ -90,6 +87,7 @@ func main() {
 	csrfMW := csrf.Protect(
 		[]byte(cfg.Csrf.Key),
 		csrf.Secure(cfg.Csrf.Secure),
+		csrf.Path("/"),
 	)
 
 	usersC := controllers.Users{
@@ -138,9 +136,8 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(csrfMW, umw.SetUser)
-	staticFileServer := http.FileServer(http.FS(staticFiles))
+	staticFileServer := http.FileServer(http.FS(static.FS))
 	r.Handle("/static/*", http.StripPrefix("/static", staticFileServer))
-	r.Get("/galleries/new", galleryC.New)
 	r.Get(
 		"/",
 		controllers.StaticHandler(
@@ -179,6 +176,12 @@ func main() {
 	r.Route("/users/me", func(r chi.Router) {
 		r.Use(umw.RequireUser)
 		r.Get("/", usersC.CurrentUser)
+	})
+	r.Route("/galleries", func(r chi.Router) {
+		r.Group(func(r chi.Router) {
+			r.Use(umw.RequireUser)
+			r.Get("/new", galleryC.New)
+		})
 	})
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
