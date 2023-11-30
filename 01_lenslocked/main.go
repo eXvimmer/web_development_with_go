@@ -133,6 +133,7 @@ func main() {
 		"galleries/new.tmpl.html",
 		"tailwind.tmpl.html",
 	))
+	// TODO: add galleriesC.Templates.Edit
 
 	r := chi.NewRouter()
 	r.Use(csrfMW, umw.SetUser)
