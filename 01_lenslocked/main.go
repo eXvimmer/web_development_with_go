@@ -125,10 +125,10 @@ func main() {
 		PasswordResetService: &models.PasswordResetService{DB: db},
 		EmailService:         models.NewEmailService(cfg.Smtp),
 	}
-	galleryC := controllers.Galleries{
+	galleriesC := controllers.Galleries{
 		GalleryService: galleryService,
 	}
-	galleryC.Templates.New = views.Must(views.ParseFS(
+	galleriesC.Templates.New = views.Must(views.ParseFS(
 		templates.FS,
 		"galleries/new.tmpl.html",
 		"tailwind.tmpl.html",
@@ -180,7 +180,8 @@ func main() {
 	r.Route("/galleries", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(umw.RequireUser)
-			r.Get("/new", galleryC.New)
+			r.Get("/new", galleriesC.New)
+			r.Post("/", galleriesC.Create)
 		})
 	})
 	r.NotFound(func(w http.ResponseWriter, _ *http.Request) {
