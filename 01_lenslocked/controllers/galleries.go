@@ -62,7 +62,11 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 	user := context.User(r.Context())
 	if user.Id != gallery.UserId {
-		http.Error(w, "you're not authorized to edit this gallery", http.StatusForbidden)
+		http.Error(
+			w,
+			"you're not authorized to edit this gallery",
+			http.StatusForbidden,
+		)
 		return
 	}
 	data := struct {
@@ -73,4 +77,46 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 		Title: gallery.Title,
 	}
 	g.Templates.Edit.Execute(w, r, data)
+}
+
+func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusNotFound)
+		return
+	}
+	gallery, err := g.GalleryService.ById(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			http.Error(w, "gallery not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	user := context.User(r.Context())
+	if user.Id != gallery.UserId {
+		http.Error(
+			w,
+			"you're not authorized to edit this gallery",
+			http.StatusForbidden,
+		)
+		return
+	}
+	gallery.Title = r.FormValue("title")
+	if gallery.Title == "" {
+		http.Error(w, "Title cannot be empty", http.StatusInternalServerError)
+		return
+	}
+	err = g.GalleryService.Update(gallery)
+	if err != nil {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(
+		w,
+		r,
+		fmt.Sprintf("/galleries/%d/edit", gallery.Id),
+		http.StatusFound,
+	)
 }
