@@ -133,6 +133,19 @@ func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
 	g.Templates.Index.Execute(w, r, data)
 }
 
+func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryById(w, r, userMustOwnGallery)
+	if err != nil {
+		return // g.galleryById handles the rendering
+	}
+	err = g.GalleryService.Delete(gallery.Id)
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/galleries", http.StatusFound)
+}
+
 // NOTE: read Rob Pike's blog post about self referential functions and the
 // design of options.
 // https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html
