@@ -5,7 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 )
+
+type Image struct {
+	Path string
+}
 
 type Gallery struct {
 	Id     int
@@ -105,10 +110,40 @@ func (gs *GalleryService) Delete(id int) error {
 	return nil
 }
 
+func (gs *GalleryService) Images(galleryId int) ([]Image, error) {
+	globPattern := filepath.Join(gs.galleryDir(galleryId), "*")
+	matches, err := filepath.Glob(globPattern)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving images: %w", err)
+	}
+	var images []Image
+	for _, file := range matches {
+		if hasExtension(file, gs.extensions()) {
+			images = append(images, Image{Path: file})
+		}
+	}
+	return images, nil
+}
+
 func (gs *GalleryService) galleryDir(id int) string {
 	imagesDir := gs.ImagesDir
 	if imagesDir == "" {
 		imagesDir = "images"
 	}
 	return filepath.Join(imagesDir, fmt.Sprintf("gallery-%d", id))
+}
+
+func (gs *GalleryService) extensions() []string {
+	return []string{".jpg", ".jpeg", ".webp", ".gif", ".png"}
+}
+
+func hasExtension(file string, extensions []string) bool {
+	file = strings.ToLower(file)
+	for _, ext := range extensions {
+		ext = strings.ToLower(ext)
+		if filepath.Ext(file) == ext {
+			return true
+		}
+	}
+	return false
 }
