@@ -131,10 +131,6 @@ func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
 		Galleries []Gallery
 	}
 	user := context.User(r.Context())
-	// if user == nil {
-	// 	http.Redirect(w, r, "/signin", http.StatusFound)
-	// 	return
-	// }
 	galleries, err := g.GalleryService.ByUserId(user.Id)
 	if err != nil {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)

@@ -92,33 +92,31 @@ func main() {
 
 	usersC := controllers.Users{
 		Templates: controllers.UsersTemplates{
-			New: views.Must(
-				views.ParseFS(templates.FS, "signup.tmpl.html", "tailwind.tmpl.html"),
-			),
-			SignIn: views.Must(
-				views.ParseFS(templates.FS, "signin.tmpl.html", "tailwind.tmpl.html"),
-			),
-			ForgotPassword: views.Must(
-				views.ParseFS(
-					templates.FS,
-					"forgot_pw.tmpl.html",
-					"tailwind.tmpl.html",
-				),
-			),
-			CheckYourEmail: views.Must(
-				views.ParseFS(
-					templates.FS,
-					"check_your_email.tmpl.html",
-					"tailwind.tmpl.html",
-				),
-			),
-			ResetPassword: views.Must(
-				views.ParseFS(
-					templates.FS,
-					"reset_pw.tmpl.html",
-					"tailwind.tmpl.html",
-				),
-			),
+			New: views.Must(views.ParseFS(
+				templates.FS,
+				"signup.tmpl.html",
+				"tailwind.tmpl.html",
+			)),
+			SignIn: views.Must(views.ParseFS(
+				templates.FS,
+				"signin.tmpl.html",
+				"tailwind.tmpl.html",
+			)),
+			ForgotPassword: views.Must(views.ParseFS(
+				templates.FS,
+				"forgot_pw.tmpl.html",
+				"tailwind.tmpl.html",
+			)),
+			CheckYourEmail: views.Must(views.ParseFS(
+				templates.FS,
+				"check_your_email.tmpl.html",
+				"tailwind.tmpl.html",
+			)),
+			ResetPassword: views.Must(views.ParseFS(
+				templates.FS,
+				"reset_pw.tmpl.html",
+				"tailwind.tmpl.html",
+			)),
 		},
 		UserService:          &models.UserService{DB: db},
 		SessionService:       sessionService,
@@ -138,11 +136,11 @@ func main() {
 		"galleries/edit.tmpl.html",
 		"tailwind.tmpl.html",
 	))
-	// galleriesC.Templates.Index = views.Must(views.ParseFS(
-	// 	templates.FS,
-	// 	"galleries/index.tmpl.html",
-	// 	"tailwind.tmpl.html",
-	// ))
+	galleriesC.Templates.Index = views.Must(views.ParseFS(
+		templates.FS,
+		"galleries/index.tmpl.html",
+		"tailwind.tmpl.html",
+	))
 
 	r := chi.NewRouter()
 	r.Use(csrfMW, umw.SetUser)
@@ -152,27 +150,30 @@ func main() {
 		"/",
 		controllers.StaticHandler(
 			views.Must(
-				views.ParseFS(templates.FS, "home.tmpl.html", "tailwind.tmpl.html"),
+				views.ParseFS(
+					templates.FS,
+					"home.tmpl.html",
+					"tailwind.tmpl.html",
+				),
 			),
 			nil,
 		),
 	)
 	r.Get(
 		"/contact",
-		controllers.StaticHandler(
-			views.Must(
-				views.ParseFS(templates.FS, "contact.tmpl.html", "tailwind.tmpl.html"),
-			),
-			nil,
-		),
+		controllers.StaticHandler(views.Must(views.ParseFS(
+			templates.FS,
+			"contact.tmpl.html",
+			"tailwind.tmpl.html",
+		)), nil),
 	)
 	r.Get(
 		"/faq",
-		controllers.FAQ(
-			views.Must(
-				views.ParseFS(templates.FS, "faq.tmpl.html", "tailwind.tmpl.html"),
-			),
-		),
+		controllers.FAQ(views.Must(views.ParseFS(
+			templates.FS,
+			"faq.tmpl.html",
+			"tailwind.tmpl.html",
+		))),
 	)
 	r.Get("/signup", usersC.New)
 	r.Post("/users", usersC.Create)
