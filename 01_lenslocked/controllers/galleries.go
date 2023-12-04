@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -16,6 +17,7 @@ type Galleries struct {
 		New   Template
 		Edit  Template
 		Index Template
+		Show  Template
 	}
 	GalleryService *models.GalleryService
 }
@@ -44,6 +46,40 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	editPath := fmt.Sprintf("/galleries/%d/edit", gallery.Id)
 	http.Redirect(w, r, editPath, http.StatusFound)
+}
+
+func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusNotFound)
+		return
+	}
+	gallery, err := g.GalleryService.ById(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			http.Error(w, "gallery not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	data := struct {
+		Id     int
+		Title  string
+		Images []string
+	}{
+		Id:    gallery.Id,
+		Title: gallery.Title,
+	}
+	// TODO: store/retrieve real images to/from database
+	for i := 0; i < 20; i++ {
+		data.Images = append(data.Images, fmt.Sprintf(
+			"https://placekitten.com/%d/%d",
+			rand.Intn(500)+200,
+			rand.Intn(500)+200,
+		))
+	}
+	g.Templates.Show.Execute(w, r, data)
 }
 
 func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
