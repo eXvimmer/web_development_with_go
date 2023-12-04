@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -53,21 +52,29 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return // g.galleryById handles the rendering
 	}
+	type Image struct {
+		GalleryId int
+		Filename  string
+	}
 	data := struct {
 		Id     int
 		Title  string
-		Images []string
+		Images []Image
 	}{
 		Id:    gallery.Id,
 		Title: gallery.Title,
 	}
-	// TODO: store/retrieve real images to/from database
-	for i := 0; i < 20; i++ {
-		data.Images = append(data.Images, fmt.Sprintf(
-			"https://placekitten.com/%d/%d",
-			rand.Intn(500)+200,
-			rand.Intn(500)+200,
-		))
+	images, err := g.GalleryService.Images(gallery.Id)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	for _, image := range images {
+		data.Images = append(data.Images, Image{
+			GalleryId: image.GalleryId,
+			Filename:  image.Filename,
+		})
 	}
 	g.Templates.Show.Execute(w, r, data)
 }
@@ -144,6 +151,38 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/galleries", http.StatusFound)
+}
+
+func (g *Galleries) Image(w http.ResponseWriter, r *http.Request) {
+	filename := chi.URLParam(r, "filename")
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid gallery id", http.StatusNotFound)
+		return
+	}
+	// TODO: needs improvement
+	// PERFORMANCE: right now we're getting all images for each gallery every
+	// time and then we return just one.
+	images, err := g.GalleryService.Images(id)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	imageFound := false
+	var requestedImage models.Image
+	for _, image := range images {
+		if image.Filename == filename {
+			imageFound = true
+			requestedImage = image
+			break
+		}
+	}
+	if !imageFound {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	http.ServeFile(w, r, requestedImage.Path)
 }
 
 // NOTE: read Rob Pike's blog post about self referential functions and the

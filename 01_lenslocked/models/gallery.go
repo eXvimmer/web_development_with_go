@@ -9,7 +9,9 @@ import (
 )
 
 type Image struct {
-	Path string
+	GalleryId int
+	Path      string
+	Filename  string
 }
 
 type Gallery struct {
@@ -118,8 +120,12 @@ func (gs *GalleryService) Images(galleryId int) ([]Image, error) {
 	}
 	var images []Image
 	for _, file := range matches {
-		if hasExtension(file, gs.extensions()) {
-			images = append(images, Image{Path: file})
+		if hasExtension(file, gs.extensions()...) {
+			images = append(images, Image{
+				GalleryId: galleryId,
+				Filename:  filepath.Base(file),
+				Path:      file,
+			})
 		}
 	}
 	return images, nil
@@ -137,7 +143,7 @@ func (gs *GalleryService) extensions() []string {
 	return []string{".jpg", ".jpeg", ".webp", ".gif", ".png"}
 }
 
-func hasExtension(file string, extensions []string) bool {
+func hasExtension(file string, extensions ...string) bool {
 	file = strings.ToLower(file)
 	for _, ext := range extensions {
 		ext = strings.ToLower(ext)

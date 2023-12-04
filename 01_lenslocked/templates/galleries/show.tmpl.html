@@ -5,7 +5,9 @@
   <div class="columns-4 gap-4 space-y-4">
     {{ range .Images }}
     <div class="h-min w-full">
-      <a href="{{ . }}" target="_blank" ><img src="{{ . }}" alt="kitten" class="w-full" /></a>
+      <a href="/galleries/{{ .GalleryId }}/images/{{ .Filename }}" target="_blank" >
+        <img src="/galleries/{{ .GalleryId }}/images/{{ .Filename }}" alt="{{ .Filename }}" class="w-full" />
+      </a>
     </div>
     {{ end }}
   </div>
