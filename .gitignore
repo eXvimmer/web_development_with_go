@@ -25,3 +25,4 @@ go.work
 01_lenslocked/.vscode
 01_lenslocked/node_modules
 01_lenslocked/.worktrees
+images/
