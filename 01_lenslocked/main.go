@@ -141,6 +141,11 @@ func main() {
 		"galleries/index.tmpl.html",
 		"tailwind.tmpl.html",
 	))
+	galleriesC.Templates.Show = views.Must(views.ParseFS(
+		templates.FS,
+		"galleries/show.tmpl.html",
+		"tailwind.tmpl.html",
+	))
 
 	r := chi.NewRouter()
 	r.Use(csrfMW, umw.SetUser)
