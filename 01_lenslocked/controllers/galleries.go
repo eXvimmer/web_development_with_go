@@ -49,19 +49,9 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	gallery, err := g.galleryById(w, r)
 	if err != nil {
-		http.Error(w, "invalid id", http.StatusNotFound)
-		return
-	}
-	gallery, err := g.GalleryService.ById(id)
-	if err != nil {
-		if errors.Is(err, models.ErrNotFound) {
-			http.Error(w, "gallery not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
-		return
+		return // g.galleryById handles the rendering
 	}
 	data := struct {
 		Id     int
@@ -83,19 +73,9 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	gallery, err := g.galleryById(w, r)
 	if err != nil {
-		http.Error(w, "invalid id", http.StatusNotFound)
-		return
-	}
-	gallery, err := g.GalleryService.ById(id)
-	if err != nil {
-		if errors.Is(err, models.ErrNotFound) {
-			http.Error(w, "gallery not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
-		return
+		return // g.galleryById handles the rendering
 	}
 	user := context.User(r.Context())
 	if user.Id != gallery.UserId {
@@ -117,19 +97,9 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	gallery, err := g.galleryById(w, r)
 	if err != nil {
-		http.Error(w, "invalid id", http.StatusNotFound)
-		return
-	}
-	gallery, err := g.GalleryService.ById(id)
-	if err != nil {
-		if errors.Is(err, models.ErrNotFound) {
-			http.Error(w, "gallery not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
-		return
+		return // g.galleryById handles the rendering
 	}
 	user := context.User(r.Context())
 	if user.Id != gallery.UserId {
@@ -179,4 +149,22 @@ func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	g.Templates.Index.Execute(w, r, data)
+}
+
+func (g *Galleries) galleryById(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusNotFound)
+		return nil, err
+	}
+	gallery, err := g.GalleryService.ById(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			http.Error(w, "gallery not found", http.StatusNotFound)
+			return nil, err
+		}
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return nil, err
+	}
+	return gallery, nil
 }
