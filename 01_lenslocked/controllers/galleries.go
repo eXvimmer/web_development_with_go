@@ -13,8 +13,9 @@ import (
 
 type Galleries struct {
 	Templates struct {
-		New  Template
-		Edit Template
+		New   Template
+		Edit  Template
+		Index Template
 	}
 	GalleryService *models.GalleryService
 }
@@ -119,4 +120,31 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 		fmt.Sprintf("/galleries/%d/edit", gallery.Id),
 		http.StatusFound,
 	)
+}
+
+func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
+	type Gallery struct {
+		Id    int
+		Title string
+	}
+	var data struct {
+		Galleries []Gallery
+	}
+	user := context.User(r.Context())
+	// if user == nil {
+	// 	http.Redirect(w, r, "/signin", http.StatusFound)
+	// 	return
+	// }
+	galleries, err := g.GalleryService.ByUserId(user.Id)
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	for _, gallery := range galleries {
+		data.Galleries = append(data.Galleries, Gallery{
+			Id:    gallery.Id,
+			Title: gallery.Title,
+		})
+	}
+	g.Templates.Index.Execute(w, r, data)
 }
