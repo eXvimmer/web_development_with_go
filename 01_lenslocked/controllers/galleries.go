@@ -160,29 +160,17 @@ func (g *Galleries) Image(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid gallery id", http.StatusNotFound)
 		return
 	}
-	// TODO: needs improvement
-	// PERFORMANCE: right now we're getting all images for each gallery every
-	// time and then we return just one.
-	images, err := g.GalleryService.Images(id)
+	image, err := g.GalleryService.Image(id, filename)
 	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
 		fmt.Println(err)
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
-	imageFound := false
-	var requestedImage models.Image
-	for _, image := range images {
-		if image.Filename == filename {
-			imageFound = true
-			requestedImage = image
-			break
-		}
-	}
-	if !imageFound {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-	http.ServeFile(w, r, requestedImage.Path)
+	http.ServeFile(w, r, image.Path)
 }
 
 // NOTE: read Rob Pike's blog post about self referential functions and the
