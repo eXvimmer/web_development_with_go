@@ -12,6 +12,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type Image struct {
+	GalleryId       int
+	Filename        string
+	FilenameEscaped string
+}
+
 type Galleries struct {
 	Templates struct {
 		New   Template
@@ -53,11 +59,6 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return // g.galleryById handles the rendering
 	}
-	type Image struct {
-		GalleryId       int
-		Filename        string
-		FilenameEscaped string
-	}
 	data := struct {
 		Id     int
 		Title  string
@@ -88,11 +89,25 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 		return // g.galleryById handles the rendering
 	}
 	data := struct {
-		Id    int
-		Title string
+		Id     int
+		Title  string
+		Images []Image
 	}{
 		Id:    gallery.Id,
 		Title: gallery.Title,
+	}
+	images, err := g.GalleryService.Images(gallery.Id)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	for _, image := range images {
+		data.Images = append(data.Images, Image{
+			GalleryId:       image.GalleryId,
+			Filename:        image.Filename,
+			FilenameEscaped: url.PathEscape(image.Filename),
+		})
 	}
 	g.Templates.Edit.Execute(w, r, data)
 }

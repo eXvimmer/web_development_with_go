@@ -29,6 +29,18 @@
       </button>
     </div>
   </form>
+
+  <div class="py-4">
+    <h2 class="pb-4 text-sm font-semibol text-gray-800">Current Images</h2>
+    <div class="py-2 grid grid-cols-8 gap-2">
+      {{ range .Images }}
+      <div class="h-min w-full relative">
+        <img src="/galleries/{{ .GalleryId }}/images/{{ .FilenameEscaped }}" alt="{{ .Filename }}" class="w-full" />
+      </div>
+      {{ end }}
+    </div>
+  </div>
+
   <div class="py-4">
     <h2>Dangerous Actions</h2>
     <form action="/galleries/{{ .Id }}/delete" method="Post" onsubmit="return confirm('Do you really want to delete this gallery?')">
