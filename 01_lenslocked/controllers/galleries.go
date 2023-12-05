@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 
 	"github.com/exvimmer/lenslocked/context"
@@ -172,7 +173,7 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Galleries) Image(w http.ResponseWriter, r *http.Request) {
-	filename := chi.URLParam(r, "filename")
+	filename := g.filename(r)
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		http.Error(w, "invalid gallery id", http.StatusNotFound)
@@ -196,7 +197,7 @@ func (g *Galleries) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	filename := chi.URLParam(r, "filename")
+	filename := g.filename(r)
 	err = g.GalleryService.DeleteImage(gallery.Id, filename)
 	if err != nil {
 		if errors.Is(err, models.ErrNotFound) {
@@ -246,6 +247,10 @@ func (g *Galleries) galleryById(
 		}
 	}
 	return gallery, nil
+}
+
+func (g *Galleries) filename(r *http.Request) string {
+	return filepath.Base(chi.URLParam(r, "filename"))
 }
 
 func userMustOwnGallery(
