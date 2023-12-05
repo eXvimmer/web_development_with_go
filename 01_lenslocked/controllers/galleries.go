@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/exvimmer/lenslocked/context"
@@ -53,8 +54,9 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 		return // g.galleryById handles the rendering
 	}
 	type Image struct {
-		GalleryId int
-		Filename  string
+		GalleryId       int
+		Filename        string
+		FilenameEscaped string
 	}
 	data := struct {
 		Id     int
@@ -72,8 +74,9 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, image := range images {
 		data.Images = append(data.Images, Image{
-			GalleryId: image.GalleryId,
-			Filename:  image.Filename,
+			GalleryId:       image.GalleryId,
+			Filename:        image.Filename,
+			FilenameEscaped: url.PathEscape(image.Filename),
 		})
 	}
 	g.Templates.Show.Execute(w, r, data)
