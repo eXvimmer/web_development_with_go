@@ -191,6 +191,30 @@ func (g *Galleries) Image(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, image.Path)
 }
 
+func (g *Galleries) DeleteImage(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryById(w, r, userMustOwnGallery)
+	if err != nil {
+		return
+	}
+	filename := chi.URLParam(r, "filename")
+	err = g.GalleryService.DeleteImage(gallery.Id, filename)
+	if err != nil {
+		if errors.Is(err, models.ErrNotFound) {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		fmt.Println(err)
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(
+		w,
+		r,
+		fmt.Sprintf("/galleries/%d/edit", gallery.Id),
+		http.StatusFound,
+	)
+}
+
 // NOTE: read Rob Pike's blog post about self referential functions and the
 // design of options.
 // https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html
