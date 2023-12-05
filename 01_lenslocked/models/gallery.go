@@ -149,6 +149,18 @@ func (gs *GalleryService) Image(galleryId int, filename string) (Image, error) {
 	}, nil
 }
 
+func (gs *GalleryService) DeleteImage(galleryId int, filename string) error {
+	image, err := gs.Image(galleryId, filename)
+	if err != nil {
+		return fmt.Errorf("deleting image: %w", err)
+	}
+	err = os.Remove(image.Path)
+	if err != nil {
+		return fmt.Errorf("deleting image: %w", err)
+	}
+	return nil
+}
+
 func (gs *GalleryService) galleryDir(id int) string {
 	imagesDir := gs.ImagesDir
 	if imagesDir == "" {
