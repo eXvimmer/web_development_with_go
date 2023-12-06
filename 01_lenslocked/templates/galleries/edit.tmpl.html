@@ -25,11 +25,13 @@
       <button
         type="submit"
         class="py-2 px-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-bold text-lg">
-        Edit
+        Update
       </button>
     </div>
   </form>
-
+  <div class="py-4">
+    {{ template "upload_image_form" . }}
+  </div>
   <div class="py-4">
     <h2 class="pb-4 text-sm font-semibol text-gray-800">Current Images</h2>
     <div class="py-2 grid grid-cols-8 gap-2">
@@ -43,7 +45,6 @@
       {{ end }}
     </div>
   </div>
-
   <div class="py-4">
     <h2>Dangerous Actions</h2>
     <form action="/galleries/{{ .Id }}/delete" method="Post" onsubmit="return confirm('Do you really want to delete this gallery?')">
@@ -68,5 +69,34 @@
   onsubmit="return confirm('Do you rellay want to delete this image?');">
   {{ csrfField }}
   <button type="submit" class="p-1 text-xs text-red-100 bg-red-800 border rounded border-red-400">❌</button>
+</form>
+{{ end }}
+
+
+{{ define "upload_image_form" }}
+<form 
+  action="/galleries/{{ .Id }}/images"
+  method="post"
+  enctype="multipart/form-data">
+  <div class="py-2">
+    <label for="images" class="block mb-2 text-sm font-semibold text-gray-800">
+      Add images
+      <p class="py-2 text-xs font-normal text-gray-600">
+        Please only upload .jpg, .jpeg, .png, .gif or .webp files.
+      </p>
+    </label>
+    <input
+      type="file"
+      name="images"
+      id="images"
+      multiple
+      accept="image/png, image/jpg, image/jpeg, image/gif, image/webp"
+    />
+  </div>
+  {{ csrfField }}
+  <button
+    type="submit"
+    class="py-2 px-8 text-lg text-white font-bold bg-indigo-600 hover:bg-indigo-700 rounded"
+  >Upload</button>
 </form>
 {{ end }}
