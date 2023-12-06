@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -133,7 +134,11 @@ func (gs *GalleryService) Images(galleryId int) ([]Image, error) {
 	return images, nil
 }
 
-func (gs *GalleryService) Image(galleryId int, filename string) (Image, error) {
+func (gs *GalleryService) Image(
+	galleryId int,
+	filename string,
+) (Image, error) {
+	// TODO: handle extensions
 	imagePath := filepath.Join(gs.galleryDir(galleryId), filename)
 	_, err := os.Stat(imagePath)
 	if err != nil {
@@ -147,6 +152,29 @@ func (gs *GalleryService) Image(galleryId int, filename string) (Image, error) {
 		GalleryId: galleryId,
 		Path:      imagePath,
 	}, nil
+}
+
+func (gs *GalleryService) CreateImage(
+	galleryId int,
+	filename string,
+	contents io.Reader,
+) error {
+	galleryDir := gs.galleryDir(galleryId)
+	err := os.MkdirAll(galleryDir, 0o755)
+	if err != nil {
+		return fmt.Errorf("creating gallery-%d images directory: %w", galleryId, err)
+	}
+	imagePath := filepath.Join(galleryDir, filename)
+	dst, err := os.Create(imagePath)
+	if err != nil {
+		return fmt.Errorf("creating image file: %w", err)
+	}
+	defer dst.Close()
+	_, err = io.Copy(dst, contents)
+	if err != nil {
+		return fmt.Errorf("copying contents to image: %w", err)
+	}
+	return nil
 }
 
 func (gs *GalleryService) DeleteImage(galleryId int, filename string) error {

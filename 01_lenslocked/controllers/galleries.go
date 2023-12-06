@@ -192,6 +192,38 @@ func (g *Galleries) Image(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, image.Path)
 }
 
+func (g *Galleries) UploadImage(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryById(w, r, userMustOwnGallery)
+	if err != nil {
+		return
+	}
+	err = r.ParseMultipartForm(5 << 20) // 5 MB
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	fileHeaders := r.MultipartForm.File["images"]
+	for _, fileHeader := range fileHeaders {
+		file, err := fileHeader.Open()
+		if err != nil {
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+		err = g.GalleryService.CreateImage(gallery.Id, fileHeader.Filename, file)
+		if err != nil {
+			http.Error(w, "something went wrong", http.StatusInternalServerError)
+			return
+		}
+	}
+	http.Redirect(
+		w,
+		r,
+		fmt.Sprintf("/galleries/%d/edit", gallery.Id),
+		http.StatusFound,
+	)
+}
+
 func (g *Galleries) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	gallery, err := g.galleryById(w, r, userMustOwnGallery)
 	if err != nil {
