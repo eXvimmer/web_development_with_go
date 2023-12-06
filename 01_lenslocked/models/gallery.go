@@ -138,7 +138,6 @@ func (gs *GalleryService) Image(
 	galleryId int,
 	filename string,
 ) (Image, error) {
-	// TODO: handle extensions
 	imagePath := filepath.Join(gs.galleryDir(galleryId), filename)
 	_, err := os.Stat(imagePath)
 	if err != nil {
@@ -157,10 +156,18 @@ func (gs *GalleryService) Image(
 func (gs *GalleryService) CreateImage(
 	galleryId int,
 	filename string,
-	contents io.Reader,
+	contents io.ReadSeeker,
 ) error {
+	err := checkContentType(contents, gs.imageContentTypes())
+	if err != nil {
+		return fmt.Errorf("creating image %v: %w", filename, err)
+	}
+	err = checkExtension(filename, gs.extensions())
+	if err != nil {
+		return fmt.Errorf("creating image %v: %w", filename, err)
+	}
 	galleryDir := gs.galleryDir(galleryId)
-	err := os.MkdirAll(galleryDir, 0o755)
+	err = os.MkdirAll(galleryDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("creating gallery-%d images directory: %w", galleryId, err)
 	}
@@ -199,6 +206,16 @@ func (gs *GalleryService) galleryDir(id int) string {
 
 func (gs *GalleryService) extensions() []string {
 	return []string{".jpg", ".jpeg", ".webp", ".gif", ".png"}
+}
+
+func (gs *GalleryService) imageContentTypes() []string {
+	return []string{
+		"image/jpg",
+		"image/jpeg",
+		"image/png",
+		"image/gif",
+		"image/webp",
+	}
 }
 
 func hasExtension(file string, extensions ...string) bool {
